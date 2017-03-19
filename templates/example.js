@@ -1,8 +1,8 @@
 module.exports = function (robot) {
-  robot.respond(/hello (.*)/i, (res) => {
-    const name = res.match[1]
+  robot.hear(/(hello|hi|yo|sup|hey)[ ]*([a-z0-9\s]*)/i, (res) => {
+    const name = res.match[2]
 
-    if (name) {
+    if (name && name.toLowerCase() !== robot.name.toLowerCase()) {
       res.send(`Why on earth are you greeting ${name}? That's not my name!`)
     } else {
       res.send(randomGreeting())
@@ -28,6 +28,7 @@ function randomGreeting () {
     "Howdy",
     "Well hello!",
     "Yo",
+    "Ayo!",
     "Greetings!",
     "Look who it is!"
   ]

@@ -17,11 +17,12 @@
   },
   "homepage": "https://github.com/RemarkableIO/CLI#readme",
   "dependencies": {
-    "blankbot": "git@github.com:RemarkableIO/blank-bot.git",
     "commander": "^2.9.0",
+    "hubot": "^2.19.0",
+    "hubot-slack": "^4.3.3",
+    "hubot-telegram": "^0.1.2",
     "inquirer": "^3.0.6",
-    "node-fetch": "^1.6.3",
-    "hubot": "^2.19.0"
+    "node-fetch": "^1.6.3"
   },
   "engines": {
     "node": "7.3.x"
@@ -30,5 +31,8 @@
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
     "mocha": "^3.2.0"
+  },
+  "bin": {
+    "remarkable": "./index.js"
   }
 }
