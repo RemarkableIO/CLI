@@ -22,7 +22,7 @@ program
 
 program
   .command('start')
-  .description('Start running your bot locally')
+  .description('Start your bot locally')
   .action(start)
 
 program

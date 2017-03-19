@@ -1,53 +1,38 @@
 const inquirer = require('inquirer')
+const path = require('path')
+const fs = require('fs')
+
+const File = require('../utils/file')
 const api = require('../utils/api')
 const botConfig = require('../utils/bot-config')
 const apiHost = require('../utils/api-host')
-
-const REQUIRED_TOKENS = {
-  telegram: [
-    {
-      name: 'TELEGRAM_TOKEN',
-      title: 'telegram bot token',
-      placeholder: 'fake56789:9esMWJfkQr9rWHBqcN2uJnrRYeGL2MT6XGs',
-      url: 'https://telegram.me/botfather'
-    }
-  ],
-  slack: [
-    {
-      name: 'HUBOT_SLACK_TOKEN',
-      title: 'slack bot token',
-      placeholder: 'fake-123456789012-oJsNfBU2KvBUwiw7JcxUU7Qj',
-      url: 'https://my.slack.com/services/new/bot'
-    }
-  ]
-}
-const prompt = inquirer.createPromptModule()
+const REQUIRED_TOKENS = require('../utils/required-tokens')
 
 module.exports = function init (subcommand, env) {
   process.stdout.write(`Let's build a bot:\n`)
 
-  collectBasicInfo()
-    .then((basicInfo) => {
-      return Promise.all([basicInfo, collectAdapterTokens(basicInfo.adapter)])
-    })
-    .then(([basicInfo, adapterTokens]) => {
-      const payload = Object.assign({}, basicInfo, { adapterTokens })
-
-      return api.createBot(payload)
-    })
-    .then((bot) => {
-      return botConfig.write({
-        name: bot.name,
-        token: bot.token,
-        adapter: bot.adapter,
-        adapterTokens: bot.adapterTokens
-      })
-    })
+  collectOptions(subcommand)
+    .then(api.createBot)
+    .then(writeBotConfigFile)
+    .then(maybeWriteExampleScript)
+    .then(maybeWriteExternalScripts)
     .then((bot) => {
       const { name, token, adapter } = bot
       const url = `${apiHost}/bot/${token}`
 
-      process.stdout.write(`Successful created ${adapter} bot named ${name}: ${url}\n`)
+      process.stdout.write(`
+  Successful created ${adapter} bot '${name}'!
+
+    Name: ${name}
+    Adapter: ${adapter}
+    See more: ${url}
+
+  Create new scripts by adding files to the /scripts
+  directory, and they'll automatically be loaded when
+  the bot starts up. Check out /scripts/greeting.js
+  for an example, or see hubot script documentation:
+  https://hubot.github.com/docs/scripting/
+\n`)
       process.exit()
     })
     .catch((error) => {
@@ -57,11 +42,14 @@ module.exports = function init (subcommand, env) {
     })
 }
 
-function collectBasicInfo () {
+const prompt = inquirer.createPromptModule()
+
+function collectBasicInfo (name) {
   const questions = [
     {
       type: 'input',
       name: 'name',
+      default: name,
       message: 'What would you like to call the bot?'
     },
     {
@@ -90,4 +78,54 @@ function collectAdapterTokens (adapter) {
   })
 
   return prompt(questions)
+}
+
+function collectOptions (name) {
+  return collectBasicInfo(name)
+    .then((basicInfo) => {
+      return Promise.all([basicInfo, collectAdapterTokens(basicInfo.adapter)])
+    })
+    .then(([basicInfo, adapterTokens]) => {
+      return Object.assign({}, basicInfo, { adapterTokens })
+    })
+}
+
+function writeBotConfigFile (bot) {
+  return botConfig.write({
+    name: bot.name,
+    token: bot.token,
+    adapter: bot.adapter,
+    adapterTokens: bot.adapterTokens
+  })
+}
+
+function maybeWriteExampleScript (bot) {
+  const exampleTemplatePath = path.resolve(__dirname, '../templates/example.js')
+  const scriptsDir = path.resolve(process.cwd(), 'scripts')
+  const exampleScriptPath = path.resolve(scriptsDir, 'example.js')
+
+  return File.exists(scriptsDir)
+    .then((exists) => {
+      if (!exists) {
+        return File.mkdir(scriptsDir)
+      }
+
+      return true
+    })
+    .then(() => {
+      return File.copy(exampleTemplatePath, exampleScriptPath, false)
+    })
+    .then(() => {
+      return bot
+    })
+}
+
+function maybeWriteExternalScripts (bot) {
+  const externalScriptsTemplatePath = path.resolve(__dirname, '../templates/external-scripts.json')
+  const externalScriptsPath = path.resolve(process.cwd(), 'external-scripts.json')
+
+  return File.copy(externalScriptsTemplatePath, externalScriptsPath, false)
+    .then(() => {
+      return bot
+    })
 }

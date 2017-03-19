@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "find ./ -name '*_test.js' | xargs mocha -R spec -r ./test-helper.js || true"
   },
   "repository": {
     "type": "git",
@@ -17,9 +17,13 @@
   },
   "homepage": "https://github.com/RemarkableIO/CLI#readme",
   "dependencies": {
+    "blankbot": "git@github.com:RemarkableIO/blank-bot.git",
     "commander": "^2.9.0",
+    "inquirer": "^3.0.6",
     "node-fetch": "^1.6.3",
-    "whatwg-fetch": "^2.0.3",
-    "blankbot": "git@github.com:RemarkableIO/blank-bot.git"
+    "hubot": "^2.19.0"
+  },
+  "engines": {
+    "node": "7.3.x"
   }
 }
