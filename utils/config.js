@@ -9,6 +9,10 @@ class Config extends JSONFile {
     super(stub || configPath)
   }
 
+  read () {
+    return JSONFile.prototype.read.call(this).catch(() => ({}))
+  }
+
   saveToken(token) {
     return this.write({ token })
   }

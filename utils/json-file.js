@@ -12,20 +12,22 @@ class JSONFile extends File {
   read () {
     return this._readFile().then((data) => {
       return this.deserialize(data)
-    }).catch(() => {
-      return Promise.resolve({})
     })
   }
 
-  write(newJson) {
-    return this.read()
-      .then((oldJson) => {
-        const json = Object.assign({}, oldJson, newJson)
-        const data = this.serialize(json)
+  write(newJson, replace = false) {
+    if (replace) {
+      const data = this.serialize(newJson)
+      return this._writeFile(data).then(() => (newJson))
+    } else {
+      return this.read()
+        .then((oldJson) => {
+          const json = Object.assign({}, oldJson, newJson)
+          const data = this.serialize(json)
 
-        return this._writeFile(data)
-          .then(() => (json))
-      })
+          return this._writeFile(data).then(() => (json))
+        })
+    }
   }
 }
 

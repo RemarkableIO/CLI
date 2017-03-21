@@ -3,7 +3,7 @@ const api = require('../utils/api')
 const config = require('../utils/config')
 
 module.exports = function login (subcommand, env) {
-  process.stdout.write('Please log in to Remarkable.io:\n')
+  console.log('Please log in to Remarkable.io:')
 
   collectCredentials()
     .then(({ email, password }) => {
@@ -17,11 +17,11 @@ module.exports = function login (subcommand, env) {
       return config.saveToken(token.token)
     })
     .then(() => {
-      process.stdout.write('Successfully authenticated with Remarkable.io.\n')
+      console.log('Successfully authenticated with Remarkable.io.\n')
       process.exit()
     })
     .catch((error) => {
-      process.stdout.write('Authentication failed. Please try again.\n')
+      console.log(error)
       process.exit()
     })
 }

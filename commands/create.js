@@ -8,10 +8,9 @@ const botConfig = require('../utils/bot-config')
 const apiHost = require('../utils/api-host')
 const REQUIRED_TOKENS = require('../utils/required-tokens')
 
-module.exports = function init (subcommand, env) {
-  process.stdout.write(`Let's build a bot:\n`)
-
-  collectOptions(subcommand)
+module.exports = function create (name, env) {
+  checkNoBot()
+    .then(collectOptions(name))
     .then(api.createBot)
     .then(writeBotConfigFile)
     .then(maybeWriteExampleScript)
@@ -20,8 +19,8 @@ module.exports = function init (subcommand, env) {
       const { name, token, adapter } = bot
       const url = `${apiHost}/bot/${token}`
 
-      process.stdout.write(`
-  Successful created ${adapter} bot '${name}'!
+      console.log(`
+  Successfully created ${adapter} bot '${name}'!
 
     Name: ${name}
     Adapter: ${adapter}
@@ -32,19 +31,38 @@ module.exports = function init (subcommand, env) {
   the bot starts up. Check out /scripts/greeting.js
   for an example, or see hubot script documentation:
   https://hubot.github.com/docs/scripting/
-\n`)
+`)
       process.exit()
     })
     .catch((error) => {
-      console.log(error)
-      process.stdout.write('Something went wrong.\n')
+      console.log('remarkable: failed to create bot.', error)
       process.exit()
     })
 }
 
 const prompt = inquirer.createPromptModule()
 
+function checkNoBot () {
+  return File.exists('./bot.json')
+    .then((exists) => {
+      if (exists) {
+        return Promise.reject('bot.json already exists in this directory.')
+      }
+
+      return Promise.resolve()
+    })
+}
+
 function collectBasicInfo (name) {
+  console.log(`
+  Create a bot.json file
+
+  This will guide you through creating and
+  configuring a new chat bot on Remarkable.io.
+
+  Let's get started.
+`)
+
   const questions = [
     {
       type: 'input',
@@ -81,13 +99,15 @@ function collectAdapterTokens (adapter) {
 }
 
 function collectOptions (name) {
-  return collectBasicInfo(name)
-    .then((basicInfo) => {
-      return Promise.all([basicInfo, collectAdapterTokens(basicInfo.adapter)])
-    })
-    .then(([basicInfo, adapterTokens]) => {
-      return Object.assign({}, basicInfo, { adapterTokens })
-    })
+  return () => {
+    return collectBasicInfo(name)
+      .then((basicInfo) => {
+        return Promise.all([basicInfo, collectAdapterTokens(basicInfo.adapter)])
+      })
+      .then(([basicInfo, adapterTokens]) => {
+        return Object.assign({}, basicInfo, { adapterTokens })
+      })
+    }
 }
 
 function writeBotConfigFile (bot) {
@@ -96,7 +116,7 @@ function writeBotConfigFile (bot) {
     token: bot.token,
     adapter: bot.adapter,
     adapterTokens: bot.adapterTokens
-  })
+  }, true)
 }
 
 function maybeWriteExampleScript (bot) {

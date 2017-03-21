@@ -29,4 +29,7 @@ module.exports = function start (subcommand, env) {
       runProcess.stdout.pipe(process.stdout)
       runProcess.stderr.pipe(process.stderr)
     })
+    .catch(() => {
+      console.log('remarkable: bot.json not found. Did you mean to run this inside a bot project directory?')
+    })
 }
