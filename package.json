@@ -18,11 +18,15 @@
   "homepage": "https://github.com/RemarkableIO/CLI#readme",
   "dependencies": {
     "commander": "^2.9.0",
+    "fstream": "^1.0.11",
+    "fstream-ignore": "^1.0.5",
     "hubot": "^2.19.0",
     "hubot-slack": "^4.3.3",
     "hubot-telegram": "^0.1.2",
     "inquirer": "^3.0.6",
-    "node-fetch": "^1.6.3"
+    "node-fetch": "^1.6.3",
+    "tar": "^2.2.1",
+    "tar-fs": "^1.15.2"
   },
   "engines": {
     "node": "7.3.x"

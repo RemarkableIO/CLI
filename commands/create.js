@@ -6,6 +6,7 @@ const File = require('../utils/file')
 const api = require('../utils/api')
 const botConfig = require('../utils/bot-config')
 const apiHost = require('../utils/api-host')
+const checkNoBot = require('../utils/check-no-bot')
 const REQUIRED_TOKENS = require('../utils/required-tokens')
 
 module.exports = function create (name, env) {
@@ -41,17 +42,6 @@ module.exports = function create (name, env) {
 }
 
 const prompt = inquirer.createPromptModule()
-
-function checkNoBot () {
-  return File.exists('./bot.json')
-    .then((exists) => {
-      if (exists) {
-        return Promise.reject('bot.json already exists in this directory.')
-      }
-
-      return Promise.resolve()
-    })
-}
 
 function collectBasicInfo (name) {
   console.log(`

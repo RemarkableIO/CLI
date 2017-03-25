@@ -6,14 +6,21 @@ program.version('0.1.0')
 
 // Commands
 const create = require('./commands/create')
+const clone = require('./commands/clone')
 const login = require('./commands/login')
 const start = require('./commands/start')
 const ping = require('./commands/ping')
+const deploy = require('./commands/deploy')
 
 program
   .command('create [name]')
-  .description('Create a new bot in the working directory')
+  .description('Create a new bot saved in the current directory')
   .action(create)
+
+program
+  .command('clone [token]')
+  .description('Clone an existing bot into the current directory')
+  .action(clone)
 
 program
   .command('login')
@@ -24,6 +31,11 @@ program
   .command('start')
   .description('Start your bot locally')
   .action(start)
+
+program
+  .command('deploy')
+  .description('Deploy bot and config')
+  .action(deploy)
 
 program
   .command('ping')

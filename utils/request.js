@@ -4,7 +4,7 @@ const config = require('./config')
 const apiHost = require('./api-host')
 
 module.exports = function request (endpoint, opts = {}) {
-  const { method, query, payload, headers } = opts
+  const { method, query, payload, headers, stream } = opts
   const queryString = formatQuery(query)
 
   const url = `${apiHost}/api${endpoint}${queryString}`
@@ -19,11 +19,10 @@ module.exports = function request (endpoint, opts = {}) {
 
       return fetch(url, {
         method: method || 'GET',
-        credentials: 'same-origin',
         headers: Object.assign({}, _headers, {
-          'Content-Type': 'application/json',
+          'Content-Type': stream ? null : 'application/json',
         }),
-        body: JSON.stringify(payload)
+        body: stream || JSON.stringify(payload)
       })
     })
     .then(res => res.json())

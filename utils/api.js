@@ -38,6 +38,10 @@ class RemarkableAPI {
     return request(`/bot/${token}`)
   }
 
+  fetchBotConfig (token) {
+    return request(`/bot/${token}/config`)
+  }
+
   createBot (botConfig) {
     return request('/bot/create', {
       method: 'POST',
@@ -70,6 +74,13 @@ class RemarkableAPI {
       payload: {
         scripts: [script]
       }
+    })
+  }
+
+  deploy (token, stream) {
+    return request(`/bot/${token}/deploy`, {
+      method: 'PUT',
+      stream
     })
   }
 
