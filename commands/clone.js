@@ -1,87 +1,67 @@
 const inquirer = require('inquirer')
 const path = require('path')
 const fs = require('fs')
-
-const File = require('../utils/file')
+const tarStream = require('tar-stream')
+const tarFs = require('tar-fs')
+const gunzip = require('gunzip-maybe')
+const concatStream = require('concat-stream')
+// const File = require('../utils/file')
 const api = require('../utils/api')
 const botConfig = require('../utils/bot-config')
-const checkNoBot = require('../utils/check-no-bot')
+// const checkNoBot = require('../utils/check-no-bot')
 
-// module.exports = function login (token, env) {
-//   if (!token) {
-//     return checkNoBot()
-//       .then(api.fetchBots)
-//       .then(selectBot)
-//     .then(cloneBot)
-//       .then(writeBotConfigFile)
-//       .then(writeScripts)
-//       .then(writeExternalScripts)
-//       .then((config) => {
-//         const { name, token, adapter } = config
+module.exports = function (token, env) {
+  getBotTokenOrFallback(token)
+    .then(api.clone)
+    .then((response) => {
+      const extract = tarFs.extract(process.cwd(), {
+        map: (header) => {
+          console.log(header.name)
 
-//         console.log(`remarkable: successfully cloned ${adapter} bot '${name}'!`)
-//       })
-//       .catch(e => {
-//         console.log(e)
-//       })
-//   }
+          return Object.assign({}, header, {
+            name: header.name.slice(4) // Offset to account for bot/
+          })
+        }
+      })
 
-//   return checkNoBot().then(() => {
-//     return cloneBot({ token })
-//   })
-// }
+      response.body
+        .pipe(gunzip())
+        .pipe(extract)
+    })
+    .catch(error => {
+      console.log(error)
+    })
+}
 
-// const prompt = inquirer.createPromptModule()
+function getBotTokenOrFallback (fallback) {
+  return botConfig.read()
+    .then(config => config.token || fallback)
+    .catch(() => {
+      if (fallback) {
+        return fallback
+      }
 
-// function selectBot (bots) {
-//   const choices = bots.map(bot => ({
-//     name: `${bot.token}: ${bot.name}`,
-//     value: bot.token
-//   }))
+      return api.fetchBots()
+        .then(selectBot)
+        .then(bot => bot.token)
+    })
+}
 
-//   const questions = [
-//     {
-//       type: 'list',
-//       name: 'token',
-//       choices: choices,
-//       message: 'Please select a bot to clone:'
-//     },
-//   ]
+function selectBot (bots) {
+  const prompt = inquirer.createPromptModule()
 
-//   return prompt(questions)
-// }
+  const choices = bots.map(bot => ({
+    name: `${bot.token}: ${bot.name}`,
+    value: bot.token
+  }))
+  const questions = [
+    {
+      type: 'list',
+      name: 'token',
+      choices: choices,
+      message: 'Please select a bot to clone:'
+    },
+  ]
+  return prompt(questions)
+}
 
-// function writeBotConfigFile (config) {
-//   return botConfig.write(config, true)
-// }
-
-// function writeScripts (config) {
-//   const exampleTemplatePath = path.resolve(__dirname, '../templates/example.js')
-//   const scriptsDir = path.resolve(process.cwd(), 'scripts')
-//   const exampleScriptPath = path.resolve(scriptsDir, 'example.js')
-
-//   return File.exists(scriptsDir)
-//     .then((exists) => {
-//       if (!exists) {
-//         return File.mkdir(scriptsDir)
-//       }
-
-//       return true
-//     })
-//     .then(() => {
-//       return File.copy(exampleTemplatePath, exampleScriptPath, false)
-//     })
-//     .then(() => {
-//       return bot
-//     })
-// }
-
-// function writeExternalScripts (bot) {
-//   const externalScriptsTemplatePath = path.resolve(__dirname, '../templates/external-scripts.json')
-//   const externalScriptsPath = path.resolve(process.cwd(), 'external-scripts.json')
-
-//   return File.copy(externalScriptsTemplatePath, externalScriptsPath, false)
-//     .then(() => {
-//       return bot
-//     })
-// }

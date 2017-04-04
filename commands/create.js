@@ -9,7 +9,7 @@ const apiHost = require('../utils/api-host')
 const checkNoBot = require('../utils/check-no-bot')
 const REQUIRED_TOKENS = require('../utils/required-tokens')
 
-module.exports = function create (name, env) {
+module.exports = function (name, env) {
   checkNoBot()
     .then(collectOptions(name))
     .then(api.createBot)

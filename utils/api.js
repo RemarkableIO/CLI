@@ -84,6 +84,13 @@ class RemarkableAPI {
     })
   }
 
+  clone (token) {
+    return request(`/bot/${token}/clone`, {
+      method: 'GET',
+      stream: true
+    })
+  }
+
   searchPackages (query) {
     return request('/packages/search', {
       query: { text: query }

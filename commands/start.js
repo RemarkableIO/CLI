@@ -3,7 +3,7 @@ const path = require('path')
 
 const botConfig = require('../utils/bot-config')
 
-module.exports = function start (subcommand, env) {
+module.exports = function (subcommand, env) {
   botConfig.read()
     .then((config) => {
       const nodeModulesPath = path.resolve(__dirname, '../node_modules')

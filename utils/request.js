@@ -12,25 +12,32 @@ module.exports = function request (endpoint, opts = {}) {
   return config.read()
     .then((obj) => {
       var _headers = headers || {}
+      if (obj.token) _headers['Authorization'] = 'Bearer ' + obj.token
 
-      if (obj.token) {
-        _headers['Authorization'] = 'Bearer ' + obj.token
-      }
+      let body
+      if (payload) body = JSON.stringify(payload)
+      if (stream) body = stream
 
       return fetch(url, {
         method: method || 'GET',
         headers: Object.assign({}, _headers, {
-          'Content-Type': stream ? null : 'application/json',
+          'Content-Type': stream ? 'application/octet-stream' : 'application/json',
         }),
-        body: stream || JSON.stringify(payload)
+        body
       })
     })
-    .then(res => res.json())
-    .then(json => {
-      if (json.error) {
-        return Promise.reject(json)
+    .then(res => {
+      if (stream) {
+        return res
       }
 
-      return json
+      return res.json()
+        .then(json => {
+          if (json.error) {
+            return Promise.reject(json)
+          }
+
+          return json
+        })
     })
 }

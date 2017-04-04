@@ -1,7 +1,7 @@
 const api = require('../utils/api')
 const apiHost = require('../utils/api-host')
 
-module.exports = function login (subcommand, env) {
+module.exports = function (subcommand, env) {
   api.check()
     .then((success) => {
       console.log(`You are authenticated with ${apiHost}.`)

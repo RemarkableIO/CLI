@@ -1,8 +1,9 @@
 const inquirer = require('inquirer')
+
 const api = require('../utils/api')
 const config = require('../utils/config')
 
-module.exports = function login (subcommand, env) {
+module.exports = function (subcommand, env) {
   console.log('Please log in to Remarkable.io:')
 
   collectCredentials()
@@ -11,13 +12,13 @@ module.exports = function login (subcommand, env) {
     })
     .then(token => {
       if (!token.token) {
-        return Promise.reject('Authentication failed. Please try again.\n')
+        return Promise.reject('\nAuthentication failed. Please try again.')
       }
 
       return config.saveToken(token.token)
     })
     .then(() => {
-      console.log('Successfully authenticated with Remarkable.io.\n')
+      console.log('\nSuccessfully authenticated with Remarkable.io.')
       process.exit()
     })
     .catch((error) => {

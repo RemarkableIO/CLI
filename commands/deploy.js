@@ -2,7 +2,7 @@ const inquirer = require('inquirer')
 const path = require('path')
 const fs = require('fs')
 const fstream = require('fstream')
-// const tar = require('tar')
+const concatStream = require('concat-stream')
 const zlib = require('zlib')
 const tar = require('tar-fs')
 
@@ -12,31 +12,42 @@ const api = require('../utils/api')
 const botConfig = require('../utils/bot-config')
 // const checkNoBot = require('../utils/check-no-bot')
 
-module.exports = function (subcommd, env) {
+module.exports = function (env) {
   // const packer = tar.Pack({ noProprietary: true })
   const gzip = zlib.createGzip()
+
+  console.log(env)
 
   // const ignore = fs.readFileSync(path.resolve(process.cwd(), '.gitignore')).toString()
 
   console.log(process.cwd())
   const stream = tar.pack(path.resolve(process.cwd(), './'), {
-      ignore: filterFile
-    })
-    .pipe(gzip)
-    .on('error', (error) => {
-      console.log(error)
-    })
+    ignore: filterFile(env.ignore)
+  }) //.pipe(gzip)
 
-  botConfig.read()
-    .then((config) => {
-      return api.deploy(config.token, stream)
-    })
-    .then((response) => {
-      console.log(response)
-    })
-    .catch((error) => {
-      console.log(error)
-    })
+  // stream.on('data', (data) => {
+  //   console.log(data.toString())
+  // })
+
+  // stream.on('end', (error) => {
+  //   console.log('end stream')
+  // })
+  // stream.on('error', (error) => {
+  //     console.log('error')
+  //     console.log(error)
+  //   })
+
+  // botConfig.read()
+  //   .then((config) => {
+  //     return deployBot(config.token, stream)
+  //   })
+  //   .then((response) => {
+  //     return response
+  //   })
+
+  //   .catch((error) => {
+  //     console.log(error)
+  //   })
 }
 
 const blacklist = [
@@ -52,13 +63,34 @@ const blacklist = [
   'npm-debug.log'
 ]
 
-function filterFile (file) {
-  const splits = file.split('/')
-  const last = splits[splits.length - 1]
+function filterFile (paths) {
+  return (file) => {
+    const splits = file.split('/')
+    const last = splits[splits.length - 1]
 
-  const exclude = blacklist.reduce((accum, blacklist) => {
-    return accum || file.indexOf(blacklist) >= 0
-  }, false)
+console.log(file)
+    const exclude = blacklist.reduce((accum, blacklist) => {
+      return accum || file.indexOf(blacklist) >= 0
+    }, false)
 
-  return exclude
+    return exclude
+  }
+}
+
+function deployBot (token, stream) {
+  return api.deploy(token, stream)
+    .then((response) => {
+      return parseJSONResponse(response)
+    })
+}
+
+function parseJSONResponse (response) {
+  return new Promise((resolve, reject) => {
+    const concat = concatStream((data) => {
+      resolve(data.toString())
+    })
+
+    response.body.on('error', reject)
+    response.body.pipe(concat)
+  })
 }

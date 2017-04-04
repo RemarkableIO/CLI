@@ -12,6 +12,10 @@ const start = require('./commands/start')
 const ping = require('./commands/ping')
 const deploy = require('./commands/deploy')
 
+const collect = (value, collection) => {
+  return collection.concat([value])
+}
+
 program
   .command('create [name]')
   .description('Create a new bot saved in the current directory')
@@ -34,6 +38,7 @@ program
 
 program
   .command('deploy')
+  .option('-i, --ignore [files]', 'Ignore files', collect, [])
   .description('Deploy bot and config')
   .action(deploy)
 
